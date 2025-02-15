@@ -8,34 +8,28 @@ const app = express();
 
 // Lista de dominios permitidos
 const allowedOrigins = [
-    'http://localhost:3001',
-    'https://tufrontend.vercel.app'
+    'http://localhost:5173',
+    'https://tu-frontend.vercel.app'
 ];
 
-// Middleware de CORS
-app.use((req, res, next) => {
-    const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-        res.setHeader('Access-Control-Allow-Credentials', 'true');
-    }
-    app.use(cors({
-    origin: ['http://localhost:5173', 'https://tu-frontend.vercel.app'], // Agrega el frontend en local y en producción
+// Configurar CORS
+app.use(cors({
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
-    // Manejo de solicitudes OPTIONS
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
-    }
 
-    next();
+// Middleware para manejar solicitudes preflight (OPTIONS)
+app.options('*', (req, res) => {
+    res.header('Access-Control-Allow-Origin', req.headers.origin);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.sendStatus(204);
 });
 
-// Middleware para parsear JSON
+// Middlewares generales
 app.use(express.json());
 app.use(bodyParser.json());
 

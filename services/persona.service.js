@@ -1,7 +1,8 @@
 const Persona = require('../models/persona.model');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const {listaNegraService } = require('../services/ListaNegra.service')
+const { listaNegraService } = require('../services/ListaNegra.service')
+const { CrearToken } = require('../utils/tokenUtils'); // Importar función de creación de token
 require('dotenv').config();
 
 const CrearToken =  async function (user){
@@ -13,52 +14,51 @@ const CrearToken =  async function (user){
     const token = jwt.sign(payload, secret, options);//toma tres parámetros: el payload (información sobre el usuario), la clave secreta utilizada para firmar el token y las opciones de configuración del token.
     return token
 }
+
+
+
 const LoginM = async function (req, res) {
-
-    if (req.method === 'OPTIONS') {
-        // Responder a preflight request
-        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-        res.setHeader('Access-Control-Allow-Credentials', 'true');
-        return res.status(200).end();
-    }
-
     try {
-        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
-        res.setHeader('Access-Control-Allow-Credentials', 'true');
-
         const { email, password } = req.body;
-        console.log(email+password)
+        
         if (!email || !password) {
-            return res.status(400).json({ error: 'Credenciales necesarias' });
+            return res.status(400).json({ error: '⚠️ Email y contraseña son obligatorios.' });
         }
 
+        // Buscar usuario en la base de datos
         const [users] = await Persona.findByEmail(email);
-        if (users.length === 0) {
-            return res.status(404).json({ error: 'Usuario no encontrado' });
+        if (!users || users.length === 0) {
+            return res.status(404).json({ error: '❌ Usuario no encontrado' });
         }
 
         const user = users[0];
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
-            return res.status(401).json({ error: 'Contraseña incorrecta' });
+
+        // Validar contraseña
+        if (!user.password) {
+            return res.status(500).json({ error: '⚠️ Error en la cuenta del usuario' });
         }
 
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ error: '🔒 Contraseña incorrecta' });
+        }
+
+        // Generar Token
         const token = await CrearToken(user);
 
         return res.status(200).json({
-            message: 'Inicio de sesión exitoso',
+            message: '✅ Inicio de sesión exitoso',
             token,
             user: { id: user.id_persona, identificacion: user.identificacion }
         });
     } catch (error) {
-        console.error('Error en login:', error);
-        return res.status(500).json({ error: 'Error al iniciar sesión' });
+        console.error('❌ Error en login:', error.message || error);
+        return res.status(500).json({ error: '🚨 Error interno del servidor' });
     }
-
-
 };
+
+
+
 const FindPersonsById = async function (id_persona) {
     try {
         const person = await Persona.findOnePersona(id_persona);
