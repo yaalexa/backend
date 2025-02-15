@@ -1,7 +1,8 @@
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
+
+// Rutas
 const personRoutes = require('./routes/persona.route');
 const moduloRoutes = require('./routes/modulo.route');
 const bitacoraRoutes = require('./routes/bitacora.route');
@@ -21,27 +22,32 @@ app.use(cors({
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
-            callback(new Error('Not allowed by CORS'));
+            callback(new Error('CORS no permitido para este origen'));
         }
     },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true // ⚠️ Habilita solo si usas cookies o sesiones
+    credentials: true
 }));
 
-// Middleware para procesar JSON
+// Middleware para manejar JSON
 app.use(express.json());
-app.use(bodyParser.json());
-
-// Manejo de solicitudes OPTIONS (preflight request)
-app.options('*', cors());
 
 // Rutas
 app.use('/api/users', personRoutes);
 app.use('/api/modulos', moduloRoutes);
 app.use('/api/bitacora', bitacoraRoutes);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor corriendo en http://192.168.100.7:${PORT}`);
+// Middleware para manejar rutas no encontradas
+app.use((req, res) => {
+    res.status(404).json({ message: 'Ruta no encontrada' });
 });
+
+// Middleware para manejar errores generales
+app.use((err, req, res, next) => {
+    console.error('Error en el servidor:', err.message);
+    res.status(500).json({ message: 'Error interno del servidor' });
+});
+
+// Exportar `app` para despliegue en Vercel
+module.exports = app;
