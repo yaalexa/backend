@@ -6,25 +6,40 @@ const dotenv = require('dotenv');
 dotenv.config();
 const app = express();
 
+// Lista de dominios permitidos
+const allowedOrigins = [
+    'http://localhost:3001',
+    'https://tufrontend.vercel.app'
+];
+
+// Middleware de CORS
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
+    
+    // Manejo de solicitudes OPTIONS
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+
+    next();
+});
+
+// Middleware para parsear JSON
 app.use(express.json());
 app.use(bodyParser.json());
 
-// ✅ Habilita CORS correctamente
-const allowedOrigins = [
-    'http://localhost:3000', // 🖥️ Para desarrollo local
-    'https://tu-frontend.vercel.app' // 🌎 Para producción en Vercel
-];
+// Importar rutas
+const personRoutes = require('./routes/persona.route');
+app.use('/api/users', personRoutes);
 
-app.use(cors({
-    origin: allowedOrigins,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true // ✅ Permite cookies y autenticación
-}));
-
-app.options('*', cors()); // 🔄 Manejo de preflight request (OPTIONS)
-
+// Iniciar servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`Servidor corriendo en puerto ${PORT}`);
 });

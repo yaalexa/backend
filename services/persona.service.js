@@ -15,10 +15,14 @@ const CrearToken =  async function (user){
 }
 const LoginM = async function (req, res) {
     try {
+        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+
         const { email, password } = req.body;
         if (!email || !password) {
             return res.status(400).json({ error: 'Credenciales necesarias' });
         }
+
         const [users] = await Persona.findByEmail(email);
         if (users.length === 0) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
@@ -29,14 +33,16 @@ const LoginM = async function (req, res) {
         if (!isPasswordValid) {
             return res.status(401).json({ error: 'Contraseña incorrecta' });
         }
+
         const token = await CrearToken(user);
-        return res.status(200).json({ 
-            message: 'Inicio de sesión exitoso', 
+
+        return res.status(200).json({
+            message: 'Inicio de sesión exitoso',
             token,
-            user: { id: user.id_persona, identificacion: user.identificacion } 
+            user: { id: user.id_persona, identificacion: user.identificacion }
         });
     } catch (error) {
-        console.error(error);
+        console.error('Error en login:', error);
         return res.status(500).json({ error: 'Error al iniciar sesión' });
     }
 };
