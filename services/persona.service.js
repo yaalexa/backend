@@ -14,8 +14,22 @@ const CrearToken =  async function (user){
     return token
 }
 const LoginM = async function (req, res) {
+
+    if (req.method === 'OPTIONS') {
+        // Responder a preflight request
+        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        return res.status(200).end();
+    }
+
     try {
+        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+
         const { email, password } = req.body;
+        console.log(email+password)
         if (!email || !password) {
             return res.status(400).json({ error: 'Credenciales necesarias' });
         }
@@ -42,6 +56,8 @@ const LoginM = async function (req, res) {
         console.error('Error en login:', error);
         return res.status(500).json({ error: 'Error al iniciar sesión' });
     }
+
+
 };
 const FindPersonsById = async function (id_persona) {
     try {
