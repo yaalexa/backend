@@ -21,7 +21,12 @@ app.use((req, res, next) => {
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
         res.setHeader('Access-Control-Allow-Credentials', 'true');
     }
-    
+    app.use(cors({
+    origin: ['http://localhost:5173', 'https://tu-frontend.vercel.app'], // Agrega el frontend en local y en producción
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
     // Manejo de solicitudes OPTIONS
     if (req.method === 'OPTIONS') {
         return res.sendStatus(200);

@@ -15,9 +15,6 @@ const CrearToken =  async function (user){
 }
 const LoginM = async function (req, res) {
     try {
-        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
-        res.setHeader('Access-Control-Allow-Credentials', 'true');
-
         const { email, password } = req.body;
         if (!email || !password) {
             return res.status(400).json({ error: 'Credenciales necesarias' });
