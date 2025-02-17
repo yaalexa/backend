@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
-
+const personRoutes = require('./routes/persona.route');
 dotenv.config();
 const app = express();
 
@@ -31,7 +31,7 @@ app.use(express.json());
 app.use(bodyParser.json());
 
 // Importar rutas
-const personRoutes = require('./routes/persona.route');
+
 app.use('/api/users', personRoutes);
 
 // Middleware para manejar errores y evitar 500 en OPTIONS
