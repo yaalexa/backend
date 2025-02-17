@@ -14,20 +14,17 @@ const allowedOrigins = [
 
 // Configurar CORS
 app.use(cors({
-    origin: allowedOrigins,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('CORS not allowed'));
+        }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
-
-// Middleware para manejar solicitudes preflight (OPTIONS)
-app.options('*', (req, res) => {
-    res.header('Access-Control-Allow-Origin', req.headers.origin);
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.sendStatus(204);
-});
 
 // Middlewares generales
 app.use(express.json());
@@ -36,6 +33,12 @@ app.use(bodyParser.json());
 // Importar rutas
 const personRoutes = require('./routes/persona.route');
 app.use('/api/users', personRoutes);
+
+// Middleware para manejar errores y evitar 500 en OPTIONS
+app.use((err, req, res, next) => {
+    console.error('Error:', err.message);
+    res.status(err.status || 500).json({ error: err.message || 'Error interno del servidor' });
+});
 
 // Iniciar servidor
 const PORT = process.env.PORT || 3000;
